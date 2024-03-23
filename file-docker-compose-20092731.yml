@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+    db-con:
+        image: mysql
+        container_name: db-con
+        restart: always
+        command: --authentication_policy=caching_sha2_password
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=dbbook
+        volumes:
+            - data-vol:/var/lib/mysql
+            - ./database/mysql-init-db.sql:/docker-entrypoint-initdb.d/mysql-init-db.sql
+        ports:
+            - '3306:3306'
+        networks:
+            - api-db-net
+            - ad-db-net
+    nodejs:
+        image: api-image
+        container_name: api-con
+        restart: always
+        environment:
+            - MYSQLHOST=db-con
+            - MYSQLDATABASE=dbbook
+            - MYSQLPORT=3306
+            - MYSQLUSER=root
+            - MYSQLPASSWORD=root
+            - PORT=80
+        ports:
+            - '5555:80'
+        networks:
+            - api-db-net
+    adminer:
+        image: adminer
+        container_name: adminer-con
+        restart: always
+        ports:
+            - '8080:8080'
+        networks:
+            - ad-db-net
+    flask-app:
+        image: web-image
+        container_name: web-con
+        restart: always
+        ports:
+            - '8888:5000'
+networks:
+    api-db-net:
+    ad-db-net:
+volumes:
+    data-vol:
